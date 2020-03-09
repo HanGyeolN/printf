@@ -30,7 +30,7 @@ int		ft_printf(const char *str, ...)
 	va_list		ap;
 	int			i;
 	int			ret;
-	char		res[1000];
+	char		res[10000];
 	char		*temp;
 	int			width;
 	char		pad;
@@ -44,7 +44,7 @@ int		ft_printf(const char *str, ...)
 	char		*p_temp;
 	char		*str_prec;
 
-	ft_memset((void *)res, 0, 1000);
+	ft_memset((void *)res, 0, 10000);
 	va_start(ap, str);
 	width = 0;
 	i = 0;
@@ -86,6 +86,10 @@ int		ft_printf(const char *str, ...)
 				else if (str[i] == '*')
 				{
 					width = va_arg(ap, int);
+					if (!(padding = malloc(sizeof(char) * (width + 1))))
+						return (-1);
+					ft_memset(padding, pad, width);
+					padding[width] = '\0';
 					i++;
 				}
 				else if (str[i] == '.')
