@@ -51,6 +51,8 @@ int		ft_printf(const char *str, ...)
 	pad = ' ';
 	minus = 0;
 	prec = 0;
+	if (str == 0)
+		return (-1);
 	while (str[i])
 	{
 		if (str[i] == '%')
@@ -63,7 +65,11 @@ int		ft_printf(const char *str, ...)
 			}
 			while (!is_conv(str[i]))
 			{
-				if (str[i] == '0')
+				if (str[i] == '\0')
+				{
+					return (-1);
+				}
+				else if (str[i] == '0')
 				{
 					pad = '0';
 					i++;
