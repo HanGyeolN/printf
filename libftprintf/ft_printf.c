@@ -273,11 +273,13 @@ int		ft_printf(const char *str, ...)
 			else if (str[i] == 's')
 			{
 				temp = (char *)va_arg(ap, char *);
+				if (temp == 0)
+					return (-1);
 				if (prec > ft_strlen(temp))
 				{
-					ft_strncpy(&str_prec[prec - ft_strlen(temp)], temp, ft_strlen(temp));
 					if (width > prec)
 					{
+						ft_strncpy(&str_prec[prec - ft_strlen(temp)], temp, ft_strlen(temp));
 						if (minus == 1)
 							ft_strncpy(padding, str_prec, ft_strlen(str_prec));
 						else
@@ -287,8 +289,8 @@ int		ft_printf(const char *str, ...)
 						free(str_prec);
 					}
 					else
-					{				
-						ft_strncat(res, str_prec, ft_strlen(str_prec));
+					{	
+						ft_strncat(res, temp, ft_strlen(temp));
 						free(str_prec);
 					}
 				}
