@@ -57,6 +57,10 @@ int		ft_printf(const char *str, ...)
 	{
 		if (str[i] == '%')
 		{
+			width = 0;
+			pad = ' ';
+			minus = 0;
+			prec = 0;
 			if (str[i + 1] == '%')
 			{
 				ft_strncat(res, (char *)&str[i], 1);
