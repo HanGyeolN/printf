@@ -20,7 +20,7 @@ char	*ft_itoa_base(unsigned int n, const char *base)
 	char			*ret;
 
 	div = n;
-	len = 0;
+	len = (n == 0) ? 1 : 0;
 	base_len = (unsigned int)ft_strlen((char *)base);
 	while (div != 0)
 	{

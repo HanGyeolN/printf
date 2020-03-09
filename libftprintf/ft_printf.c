@@ -46,21 +46,21 @@ int		ft_printf(const char *str, ...)
 
 	ft_memset((void *)res, 0, 10000);
 	va_start(ap, str);
-	width = 0;
+	width = -1;
 	i = 0;
 	pad = ' ';
-	minus = 0;
-	prec = 0;
+	minus = -1;
+	prec = -1;
 	if (str == 0)
 		return (-1);
 	while (str[i])
 	{
 		if (str[i] == '%')
 		{
-			width = 0;
+			width = -1;
 			pad = ' ';
-			minus = 0;
-			prec = 0;
+			minus = -1;
+			prec = -1;
 			if (str[i + 1] == '%')
 			{
 				ft_strncat(res, (char *)&str[i], 1);
@@ -95,6 +95,7 @@ int		ft_printf(const char *str, ...)
 				else if (str[i] == '.')
 				{
 					i++;
+					prec = 0;
 					if (is_numeric(str[i]))
 					{
 						prec = ft_atoi(&str[i]);
@@ -107,6 +108,9 @@ int		ft_printf(const char *str, ...)
 					else if (str[i] == '*')
 					{
 						prec = va_arg(ap, int);
+						if (!(str_prec = calloc((prec + 1), sizeof(char))))
+							return (0);
+						ft_memset(str_prec, '0', prec);
 						i++;
 					}
 				}
@@ -129,6 +133,11 @@ int		ft_printf(const char *str, ...)
 				if (prec > ft_strlen(temp))
 				{
 					ft_strncpy(&str_prec[prec - ft_strlen(temp)], temp, ft_strlen(temp));
+					if (temp[0] == '-')
+					{
+						str_prec[prec - ft_strlen(temp)] = str_prec[0];
+						str_prec[0] = '-';
+					}
 					if (width > prec)
 					{
 						if (minus == 1)
@@ -140,7 +149,7 @@ int		ft_printf(const char *str, ...)
 						free(str_prec);
 					}
 					else
-					{				
+					{
 						ft_strncat(res, str_prec, ft_strlen(str_prec));
 						free(str_prec);
 					}
@@ -150,7 +159,7 @@ int		ft_printf(const char *str, ...)
 					if (minus == 1)
 						ft_strncpy(padding, temp, ft_strlen(temp));
 					else
-						ft_strcpy(&padding[width - ft_strlen(temp)], temp);
+					ft_strcpy(&padding[width - ft_strlen(temp)], temp);
 					ft_strncat(res, padding, ft_strlen(padding));
 					free(padding);
 				}
@@ -243,16 +252,25 @@ int		ft_printf(const char *str, ...)
 				n_temp = (int)va_arg(ap, int);
 				if (n_temp < 0)
 					u_temp = n_temp;
-				temp = ft_itoa_base(n_temp, "0123456789abcdef");
+				if (str[i] == 'x')
+					temp = ft_itoa_base(n_temp, "0123456789abcdef");
+				else
+					temp = ft_itoa_base(n_temp, "0123456789ABCDEF");
 				if (prec > ft_strlen(temp))
 				{
 					ft_strncpy(&str_prec[prec - ft_strlen(temp)], temp, ft_strlen(temp));
 					if (width > prec)
 					{
 						if (minus == 1)
+						{
 							ft_strncpy(padding, str_prec, ft_strlen(str_prec));
+							ft_memset(&padding[ft_strlen(str_prec)], ' ', width - ft_strlen(str_prec));
+						}
 						else
+						{
 							ft_strncpy(&padding[width - prec], str_prec, ft_strlen(str_prec));
+							ft_memset(padding, ' ', width - ft_strlen(str_prec));
+						}
 						ft_strncat(res, padding, ft_strlen(padding));
 						free(padding);
 						free(str_prec);
@@ -269,8 +287,28 @@ int		ft_printf(const char *str, ...)
 						ft_strncpy(padding, temp, ft_strlen(temp));
 					else
 						ft_strcpy(&padding[width - ft_strlen(temp)], temp);
-					ft_strncat(res, padding, ft_strlen(padding));
-					free(padding);
+					if (width > prec && prec != -1)
+					{
+						ft_strncpy(&str_prec[prec - ft_strlen(temp)], temp, ft_strlen(temp));
+						if (minus == 1)
+						{
+							ft_strncpy(padding, str_prec, ft_strlen(str_prec));
+							ft_memset(&padding[ft_strlen(str_prec)], ' ', width - ft_strlen(str_prec));
+						}
+						else
+						{
+							ft_strncpy(&padding[width - prec], str_prec, ft_strlen(str_prec));
+							ft_memset(padding, ' ', width - ft_strlen(str_prec));
+						}
+						ft_strncat(res, padding, ft_strlen(padding));
+						free(padding);
+						free(str_prec);
+					}
+					else
+					{
+						ft_strncat(res, padding, ft_strlen(padding));
+						free(padding);
+					}
 				}
 				else
 				{
@@ -366,89 +404,3 @@ int		ft_printf(const char *str, ...)
 	va_end(ap);
 	return (ret);
 }
-/*
-void	test_d(char *s, int num)
-{
-	int		ret;
-
-	ret = ft_printf(s, num);
-	printf("ret: %d\n", ret);
-	ret = printf(s, num);
-	printf("ret: %d\n", ret);
-	printf("====================\n");
-}
-
-void	test_s(char *s, char *s1)
-{
-	int		ret;
-
-	ret = ft_printf(s, s1);
-	printf("ret: %d\n", ret);
-	ret = printf(s, s1);
-	printf("ret: %d\n", ret);
-	printf("====================\n");
-}
-
-
-void	test_d2(char *s, int n1, int n2)
-{
-	int		ret;
-
-	ret = ft_printf(s, n1, n2);
-	printf("ret: %d\n", ret);
-	ret = printf(s, n1, n2);
-	printf("ret: %d\n", ret);
-	printf("====================\n");
-}
-
-void	test_p(char *s, void *p)
-{
-	int		ret;
-
-	ret = ft_printf(s, p);
-	printf("ret: %d\n", ret);
-	ret = printf(s, p);
-	printf("ret: %d\n", ret);
-	printf("====================\n");
-}
-
-int		main(void)
-{
-	int		p;
-
-	test_d("test %10d.\n", 1000);
-	test_d("test %d\n", 32);
-	test_d("%d\n", 42);
-	test_d("%dd\n", 55);
-	test_d("%%d\n", 10);
-	test_d2("%d|%i\n", 31, 32);
-
-	printf("unsigned int\n");
-	test_d("test %u.\n", -42);
-	test_d("%-20u", -11);
-
-	printf("char test \n");
-	test_d("test %-4c.\n", 'g');
-
-	printf("x X test\n");
-	test_d("test %x.\n", -255);
-	test_d("test %-10x.\n", 0);
-	test_d("test %10x.\n", -255);
-
-	printf("s Test\n");
-	test_s("hello %s.\n", "world");
-	test_s("hello %30s.\n", "world");
-
-	printf("p test\n");
-	test_p("test %p.\n", &p);
-
-	printf(". test\n");
-	test_d("%.5d\n", 421);
-	test_d("%.2d\n", 421);
-	test_d("%10.4d\n", 42);
-	test_d("%-10.4d\n", 42);
-	//ft_printf("test 100%%\n");
-	//printf("test 100%%\n");
-	return (0);
-}
-*/

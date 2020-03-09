@@ -7,7 +7,7 @@ char	*ft_itoa_u(unsigned int n)
 	char	        *ret;
 
 	div = n;
-	len = 0;
+	len = (n == 0) ? 1 : 0;
 	while (div != 0)
 	{
 		div = div / 10;
@@ -16,8 +16,7 @@ char	*ft_itoa_u(unsigned int n)
 	if (!(ret = malloc(sizeof(char) * (len + 1))))
 		return (0);
 	ret[len] = '\0';
-	if (n == 0)
-		ret[0] = '0';
+	ret[0] = '0';
 	while (n != 0)
 	{
 		len--;
