@@ -25,6 +25,20 @@ int		is_conv(int c)
 	return (0);
 }
 
+int		find_idx(char *str, int c)
+{
+	int		i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (str[i] == c)
+			return (i);
+		i++;
+	}
+	return (-1);
+}
+
 int		ft_printf(const char *str, ...)
 {
 	va_list		ap;
@@ -43,6 +57,7 @@ int		ft_printf(const char *str, ...)
 	long long	ll_temp;
 	char		*p_temp;
 	char		*str_prec;
+	char		*tmp_prec;
 
 	ft_memset((void *)res, 0, 10000);
 	va_start(ap, str);
@@ -129,27 +144,46 @@ int		ft_printf(const char *str, ...)
 			}
 			if (str[i] == 'd' || str[i] == 'i')
 			{
-				temp = ft_itoa((int)va_arg(ap, int));
+				n_temp = (int)va_arg(ap, int);
+				temp = ft_itoa(n_temp);
 				if (prec > ft_strlen(temp))
 				{
-					ft_strncpy(&str_prec[prec - ft_strlen(temp)], temp, ft_strlen(temp));
 					if (temp[0] == '-')
 					{
-						str_prec[prec - ft_strlen(temp)] = str_prec[0];
-						str_prec[0] = '-';
+						ft_strncpy(&str_prec[prec - ft_strlen(temp) + 1], &temp[1], ft_strlen(temp));
+						tmp_prec = malloc(sizeof(char) * (ft_strlen(str_prec) + 2));
+						tmp_prec[0] = '-';
+						ft_strcpy(&tmp_prec[1], str_prec);
+						tmp_prec[prec + 1] = '\0';
+						free(str_prec);
+						str_prec = tmp_prec;
 					}
+					else
+						ft_strncpy(&str_prec[prec - ft_strlen(temp)], temp, ft_strlen(temp));
 					if (width > prec)
 					{
 						if (minus == 1)
+						{
 							ft_strncpy(padding, str_prec, ft_strlen(str_prec));
+							ft_memset(&padding[ft_strlen(str_prec)], ' ', width - ft_strlen(str_prec));
+						}
 						else
-							ft_strncpy(&padding[width - prec], str_prec, ft_strlen(str_prec));
+						{
+							if (temp[0] == '-')
+								ft_strncpy(&padding[width - prec - 1], str_prec, ft_strlen(str_prec));
+							else
+								ft_strncpy(&padding[width - prec], str_prec, ft_strlen(str_prec));
+							if (temp[0] == '-')
+								ft_memset(padding, ' ', width - ft_strlen(str_prec));
+							else
+								ft_memset(padding, ' ', width - ft_strlen(str_prec));
+						}
 						ft_strncat(res, padding, ft_strlen(padding));
 						free(padding);
 						free(str_prec);
 					}
 					else
-					{
+					{				
 						ft_strncat(res, str_prec, ft_strlen(str_prec));
 						free(str_prec);
 					}
@@ -159,9 +193,37 @@ int		ft_printf(const char *str, ...)
 					if (minus == 1)
 						ft_strncpy(padding, temp, ft_strlen(temp));
 					else
-					ft_strcpy(&padding[width - ft_strlen(temp)], temp);
-					ft_strncat(res, padding, ft_strlen(padding));
-					free(padding);
+						ft_strcpy(&padding[width - ft_strlen(temp)], temp);
+					if (temp[0] == '-' && padding[0] == '0')
+					{
+						padding[width - ft_strlen(temp)] = '0';
+						padding[0] = '-';
+					}
+					if (width > prec && prec != -1)
+					{
+						ft_strncpy(&str_prec[prec - ft_strlen(temp)], temp, ft_strlen(temp));
+						if (minus == 1)
+						{
+							ft_strncpy(padding, str_prec, ft_strlen(str_prec));
+							ft_memset(&padding[ft_strlen(str_prec)], ' ', width - ft_strlen(str_prec));
+						}
+						else
+						{
+							ft_strncpy(&padding[width - prec], str_prec, ft_strlen(str_prec));
+							if (temp[0] == '-')
+								ft_memset(padding, ' ', width - ft_strlen(str_prec) - 1);
+							else
+								ft_memset(padding, ' ', width - ft_strlen(str_prec));
+						}
+						ft_strncat(res, padding, ft_strlen(padding));
+						free(padding);
+						free(str_prec);
+					}
+					else
+					{
+						ft_strncat(res, padding, ft_strlen(padding));
+						free(padding);
+					}
 				}
 				else
 				{
