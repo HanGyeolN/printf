@@ -16,7 +16,7 @@ int		is_flag(int c)
 
 int		is_conv(int c)
 {
-	if (ft_strchr("cspdiuxX", c))
+	if (ft_strchr("cspdiuxX%", c))
 		return (1);
 	return (0);
 }
@@ -83,6 +83,61 @@ void	init_option(t_option *opt)
 	opt->pad = ' ';
 }
 
+int		concat_perc(t_option *opt, char *res)
+{
+	unsigned char	c_temp;
+	char			*temp;
+	char			*padding;
+	char			*str_prec;
+
+	c_temp = '%';
+	temp = malloc(sizeof(char) * 2);
+	temp[0] = c_temp;
+	temp[1] = '\0';
+	if (opt->prec > ft_strlen(temp))
+	{
+		if (!(str_prec = make_padstr(opt->prec, '0')))
+			return (-1);
+		ft_strncpy(&str_prec[opt->prec - ft_strlen(temp)], temp, 1);
+		if (opt->width > opt->prec)
+		{
+			if (!(padding = make_padstr(opt->width, opt->pad)))
+				return (-1);
+			if (opt->minus == 1)
+				ft_strncpy(padding, str_prec, ft_strlen(str_prec));
+			else
+				ft_strncpy(&padding[opt->width - opt->prec], str_prec, ft_strlen(str_prec));
+			ft_strncat(res, padding, ft_strlen(padding));
+			free(padding);
+			free(str_prec);
+		}
+		else
+		{				
+			ft_strncat(res, str_prec, ft_strlen(str_prec));
+			free(str_prec);
+		}
+	}
+	else if (opt->width > ft_strlen(temp))
+	{
+		if (opt->minus == 1)
+			opt->pad = ' ';
+		if (!(padding = make_padstr(opt->width, opt->pad)))
+			return (-1);
+		if (opt->minus == 1)
+			ft_strncpy(padding, temp, ft_strlen(temp));
+		else
+			ft_strcpy(&padding[opt->width - ft_strlen(temp)], temp);
+		ft_strncat(res, padding, ft_strlen(padding));
+		free(padding);
+	}
+	else
+	{
+		ft_strncat(res, temp, ft_strlen(temp));
+	}
+	free(temp);
+	return (0);
+}
+
 int		concat_int(t_option *opt, va_list ap, char *res)
 {
 	int		n_temp;
@@ -93,9 +148,19 @@ int		concat_int(t_option *opt, va_list ap, char *res)
 
 	n_temp = (int)va_arg(ap, int);
 	temp = ft_itoa(n_temp);
+	if (opt->width < -1)
+	{
+		opt->width = -(opt->width);
+		opt->minus = 1;
+	}
+	if (opt->prec < -1)
+	{
+		opt->prec = (temp[0] == '-') ? ft_strlen(temp) - 1 : ft_strlen(temp);
+		opt->minus = 1;
+	}
 	if (opt->prec == 0)
 		temp[0] = '\0';
-	if (opt->prec > ft_strlen(temp))
+	if ((opt->prec > ft_strlen(temp) && temp[0] != '-' ) || (opt->prec > ft_strlen(temp) - 1 && temp[0] == '-'))
 	{
 		if (!(str_prec = make_padstr(opt->prec, '0')))
 			return (-1);
@@ -143,8 +208,16 @@ int		concat_int(t_option *opt, va_list ap, char *res)
 	}
 	else if (opt->width > ft_strlen(temp))
 	{
-		if (!(padding = make_padstr(opt->width, opt->pad)))
-			return (-1);
+		if (opt->prec != -1 && opt->prec <= ft_strlen(temp))
+		{
+			if (!(padding = make_padstr(opt->width, ' ')))
+				return (-1);
+		}
+		else
+		{
+			if (!(padding = make_padstr(opt->width, opt->pad)))
+				return (-1);
+		}
 		if (opt->minus == 1)
 		{
 			free(padding);
@@ -178,7 +251,7 @@ int		concat_uint(t_option *opt, va_list ap, char *res)
 	char			*str_prec;
 
 	u_temp = (unsigned int)va_arg(ap, int);
-	temp = ft_itoa_u(u_temp); 
+	temp = ft_itoa_u(u_temp);
 	if (opt->prec == 0)
 		temp[0] = '\0';
 	if (opt->prec > ft_strlen(temp))
@@ -188,6 +261,7 @@ int		concat_uint(t_option *opt, va_list ap, char *res)
 		ft_strncpy(&str_prec[opt->prec - ft_strlen(temp)], temp, ft_strlen(temp));
 		if (opt->width > opt->prec)
 		{
+			opt->pad = ' ';
 			if (!(padding = make_padstr(opt->width, opt->pad)))
 				return (-1);
 			if (opt->minus == 1)
@@ -206,8 +280,16 @@ int		concat_uint(t_option *opt, va_list ap, char *res)
 	}
 	else if (opt->width > ft_strlen(temp))
 	{
-		if (!(padding = make_padstr(opt->width, opt->pad)))
-			return (-1);
+		if (opt->prec != -1 && opt->prec < ft_strlen(temp))
+		{
+			if (!(padding = make_padstr(opt->width, ' ')))
+				return (-1);
+		}
+		else
+		{
+			if (!(padding = make_padstr(opt->width, opt->pad)))
+				return (-1);
+		}
 		if (opt->minus == 1)
 			ft_strncpy(padding, temp, ft_strlen(temp));
 		else
@@ -225,20 +307,22 @@ int		concat_uint(t_option *opt, va_list ap, char *res)
 
 int		concat_char(t_option *opt, va_list ap, char *res)
 {
-	char	c_temp;
-	char	*temp;
-	char	*padding;
-	char	*str_prec;
+	unsigned char	c_temp;
+	char			*temp;
+	char			*padding;
+	char			*str_prec;
 
 	c_temp = (char)va_arg(ap, int);
 	temp = malloc(sizeof(char) * 2);
+	if (c_temp == 0)
+		write(1, &c_temp, 1);
 	temp[0] = c_temp;
 	temp[1] = '\0';
 	if (opt->prec > ft_strlen(temp))
 	{
 		if (!(str_prec = make_padstr(opt->prec, '0')))
 			return (-1);
-		ft_strncpy(&str_prec[opt->prec - ft_strlen(temp)], temp, ft_strlen(temp));
+		ft_strncpy(&str_prec[opt->prec - ft_strlen(temp)], temp, 1);
 		if (opt->width > opt->prec)
 		{
 			if (!(padding = make_padstr(opt->width, opt->pad)))
@@ -270,7 +354,7 @@ int		concat_char(t_option *opt, va_list ap, char *res)
 	}
 	else
 	{
-		ft_strncat(res, temp, ft_strlen(temp));
+		ft_strncat(res, temp, 1);
 	}
 	free(temp);
 	return (0);
@@ -324,36 +408,16 @@ int		concat_hex(t_option *opt, va_list ap, char *res, char mode)
 	}
 	else if (opt->width > ft_strlen(temp))
 	{
+		if (opt->prec < ft_strlen(temp) && opt->prec != -1)
+			opt->pad = ' ';
 		if (!(padding = make_padstr(opt->width, opt->pad)))
 			return (-1);
 		if (opt->minus == 1)
 			ft_strncpy(padding, temp, ft_strlen(temp));
 		else
 			ft_strcpy(&padding[opt->width - ft_strlen(temp)], temp);
-		if (opt->width > opt->prec && opt->prec != -1)
-		{
-			if (!(str_prec = make_padstr(opt->prec, '0')))
-				return (-1);
-			ft_strncpy(&str_prec[opt->prec - ft_strlen(temp)], temp, ft_strlen(temp));
-			if (opt->minus == 1)
-			{
-				ft_strncpy(padding, str_prec, ft_strlen(str_prec));
-				ft_memset(&padding[ft_strlen(str_prec)], ' ', opt->width - ft_strlen(str_prec));
-			}
-			else
-			{
-				ft_strncpy(&padding[opt->width - opt->prec], str_prec, ft_strlen(str_prec));
-				ft_memset(padding, ' ', opt->width - ft_strlen(str_prec));
-			}
-			ft_strncat(res, padding, ft_strlen(padding));
-			free(padding);
-			free(str_prec);
-		}
-		else
-		{
-			ft_strncat(res, padding, ft_strlen(padding));
-			free(padding);
-		}
+		ft_strncat(res, padding, ft_strlen(padding));
+		free(padding);
 	}
 	else
 	{
@@ -378,6 +442,11 @@ int		concat_str(t_option *opt, va_list ap, char *res)
 	if (opt->width < -1)
 	{
 		opt->width = -(opt->width);
+		opt->minus = 1;
+	}
+	if (opt->prec < -1)
+	{
+		opt->prec = ft_strlen(temp);
 		opt->minus = 1;
 	}
 	if (opt->prec < ft_strlen(temp) && opt->prec != -1)
@@ -466,7 +535,7 @@ int		concat_paddr(t_option *opt, va_list ap, char *res)
 	temp = ft_strjoin("0x", p_temp);
 	free(p_temp);
 	if (opt->prec == 0)
-		temp[0] = '\0';
+		temp[2] = '\0';
 	if (opt->prec > ft_strlen(temp) && opt->prec != -1)
 	{
 		if (!(str_prec = make_padstr(opt->prec, ' ')))
@@ -536,52 +605,12 @@ int		concat_paddr(t_option *opt, va_list ap, char *res)
 	}
 	free(temp);
 	return (0);
-	/*
-	if (opt->prec > ft_strlen(temp))
-	{
-		if (!(str_prec = make_padstr(opt->prec, '0')))
-			return (-1);
-		ft_strncpy(&str_prec[opt->prec - ft_strlen(temp)], temp, ft_strlen(temp));
-		if (opt->width > opt->prec)
-		{
-			if (!(padding = make_padstr(opt->width, opt->pad)))
-				return (-1);
-			if (opt->minus == 1)
-				ft_strncpy(padding, str_prec, ft_strlen(str_prec));
-			else
-				ft_strncpy(&padding[opt->width - opt->prec], str_prec, ft_strlen(str_prec));
-			ft_strncat(res, padding, ft_strlen(padding));
-			free(padding);
-			free(str_prec);
-		}
-		else
-		{				
-			ft_strncat(res, str_prec, ft_strlen(str_prec));
-			free(str_prec);
-		}
-	}
-	else if (opt->width > ft_strlen(temp))
-	{
-		if (!(padding = make_padstr(opt->width, opt->pad)))
-			return (-1);
-		if (opt->minus == 1)
-			ft_strncpy(padding, temp, ft_strlen(temp));
-		else
-			ft_strcpy(&padding[opt->width - ft_strlen(temp)], temp);
-		ft_strncat(res, padding, ft_strlen(padding));
-		free(padding);
-	}
-	else
-	{
-		ft_strncat(res, temp, ft_strlen(temp));
-	}
-	free(temp);
-	return (0);
-	*/
+
 }
 
 int		parse_flag(t_option *opt, va_list ap, char *str, int *i)
 {
+	*i += 1;
 	while (!is_conv(str[*i]))
 	{
 		if (str[*i] == '\0')
@@ -635,6 +664,8 @@ int		convert_conv(char conv, t_option *opt, va_list ap, char *res)
 		concat_str(opt, ap, res);
 	else if (conv == 'p')
 		concat_paddr(opt, ap, res);
+	else if (conv == '%')
+		concat_perc(opt, res);
 	return (0);
 }
 
