@@ -26,12 +26,11 @@ typedef struct		s_list
 
 typedef	struct		s_option
 {
-	int		i;
+	int		len;
 	int		width;
 	int		prec;
 	int		minus;
 	char	pad;
-	va_list	ap;
 }					t_option;
 
 void	*ft_memset(void *b, int c, size_t len);

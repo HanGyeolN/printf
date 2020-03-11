@@ -35,11 +35,25 @@ int		find_idx(char *str, int c)
 	return (-1);
 }
 
-int		next_is_percent(const char *str, char *res, int *idx)
+void	ft_putnstr(char *str, int n, t_option *opt)
+{
+	int		i;
+
+	i = 0;
+	while (i < n)
+	{
+		ft_putchar(str[i]);
+		(opt->len)++;
+		i++;
+	}
+}
+
+int		next_is_percent(const char *str, char *res, int *idx, t_option *opt)
 {
 	if (str[*idx + 1] == '%')
 	{
 		ft_strncat(res, "%", 1);
+		ft_putnstr("%", 1, opt);
 		*idx += 2;
 		return (1);
 	}
@@ -108,12 +122,14 @@ int		concat_perc(t_option *opt, char *res)
 			else
 				ft_strncpy(&padding[opt->width - opt->prec], str_prec, ft_strlen(str_prec));
 			ft_strncat(res, padding, ft_strlen(padding));
+			ft_putnstr(padding, ft_strlen(padding), opt);
 			free(padding);
 			free(str_prec);
 		}
 		else
 		{				
 			ft_strncat(res, str_prec, ft_strlen(str_prec));
+			ft_putnstr(str_prec, ft_strlen(str_prec), opt);
 			free(str_prec);
 		}
 	}
@@ -128,11 +144,13 @@ int		concat_perc(t_option *opt, char *res)
 		else
 			ft_strcpy(&padding[opt->width - ft_strlen(temp)], temp);
 		ft_strncat(res, padding, ft_strlen(padding));
+		ft_putnstr(padding, ft_strlen(padding), opt);
 		free(padding);
 	}
 	else
 	{
 		ft_strncat(res, temp, ft_strlen(temp));
+		ft_putnstr(temp, ft_strlen(temp), opt);
 	}
 	free(temp);
 	return (0);
@@ -197,12 +215,14 @@ int		concat_int(t_option *opt, va_list ap, char *res)
 					ft_memset(padding, ' ', opt->width - ft_strlen(str_prec));
 			}
 			ft_strncat(res, padding, ft_strlen(padding));
+			ft_putnstr(padding, ft_strlen(padding), opt);
 			free(padding);
 			free(str_prec);
 		}
 		else
 		{				
 			ft_strncat(res, str_prec, ft_strlen(str_prec));
+			ft_putnstr(str_prec, ft_strlen(str_prec), opt);
 			free(str_prec);
 		}
 	}
@@ -233,11 +253,13 @@ int		concat_int(t_option *opt, va_list ap, char *res)
 			padding[0] = '-';
 		}
 		ft_strncat(res, padding, ft_strlen(padding));
+		ft_putnstr(padding, ft_strlen(padding), opt);
 		free(padding);
 	}
 	else
 	{
 		ft_strncat(res, temp, ft_strlen(temp));
+		ft_putnstr(temp, ft_strlen(temp), opt);
 	}
 	free(temp);
 	return (0);
@@ -269,12 +291,14 @@ int		concat_uint(t_option *opt, va_list ap, char *res)
 			else
 				ft_strncpy(&padding[opt->width - opt->prec], str_prec, ft_strlen(str_prec));
 			ft_strncat(res, padding, ft_strlen(padding));
+			ft_putnstr(padding, ft_strlen(padding), opt);
 			free(padding);
 			free(str_prec);
 		}
 		else
 		{				
 			ft_strncat(res, str_prec, ft_strlen(str_prec));
+			ft_putnstr(str_prec, ft_strlen(str_prec), opt);
 			free(str_prec);
 		}
 	}
@@ -295,11 +319,13 @@ int		concat_uint(t_option *opt, va_list ap, char *res)
 		else
 			ft_strcpy(&padding[opt->width - ft_strlen(temp)], temp);
 		ft_strncat(res, padding, ft_strlen(padding));
+		ft_putnstr(padding, ft_strlen(padding), opt);
 		free(padding);
 	}
 	else
 	{
 		ft_strncat(res, temp, ft_strlen(temp));
+		ft_putnstr(temp, ft_strlen(temp), opt);
 	}
 	free(temp);
 	return (0);
@@ -314,15 +340,13 @@ int		concat_char(t_option *opt, va_list ap, char *res)
 
 	c_temp = (char)va_arg(ap, int);
 	temp = malloc(sizeof(char) * 2);
-	if (c_temp == 0)
-		write(1, &c_temp, 1);
 	temp[0] = c_temp;
 	temp[1] = '\0';
-	if (opt->prec > ft_strlen(temp))
+	if (opt->prec > 1)
 	{
 		if (!(str_prec = make_padstr(opt->prec, '0')))
 			return (-1);
-		ft_strncpy(&str_prec[opt->prec - ft_strlen(temp)], temp, 1);
+		ft_strncpy(&str_prec[opt->prec - 1], temp, 1);
 		if (opt->width > opt->prec)
 		{
 			if (!(padding = make_padstr(opt->width, opt->pad)))
@@ -332,29 +356,39 @@ int		concat_char(t_option *opt, va_list ap, char *res)
 			else
 				ft_strncpy(&padding[opt->width - opt->prec], str_prec, ft_strlen(str_prec));
 			ft_strncat(res, padding, ft_strlen(padding));
+			if (c_temp == 0)
+				ft_putnstr(padding, ft_strlen(padding) + 1, opt);
+			else
+				ft_putnstr(padding, ft_strlen(padding), opt);
 			free(padding);
 			free(str_prec);
 		}
 		else
 		{				
 			ft_strncat(res, str_prec, ft_strlen(str_prec));
+			if (c_temp == 0)
+				ft_putnstr(str_prec, ft_strlen(str_prec) + 1, opt);
+			else
+				ft_putnstr(str_prec, ft_strlen(str_prec), opt);
 			free(str_prec);
 		}
 	}
-	else if (opt->width > ft_strlen(temp))
+	else if (opt->width > 1)
 	{
 		if (!(padding = make_padstr(opt->width, opt->pad)))
 			return (-1);
 		if (opt->minus == 1)
-			ft_strncpy(padding, temp, ft_strlen(temp));
+			ft_strncpy(padding, temp, 1);
 		else
-			ft_strcpy(&padding[opt->width - ft_strlen(temp)], temp);
+			ft_strcpy(&padding[opt->width - 1], temp);
 		ft_strncat(res, padding, ft_strlen(padding));
+		ft_putnstr(padding, opt->width, opt);
 		free(padding);
 	}
 	else
 	{
 		ft_strncat(res, temp, 1);
+		ft_putnstr(temp, 1, opt);
 	}
 	free(temp);
 	return (0);
@@ -397,12 +431,14 @@ int		concat_hex(t_option *opt, va_list ap, char *res, char mode)
 				ft_memset(padding, ' ', opt->width - ft_strlen(str_prec));
 			}
 			ft_strncat(res, padding, ft_strlen(padding));
+			ft_putnstr(padding, ft_strlen(padding), opt);
 			free(padding);
 			free(str_prec);
 		}
 		else
 		{				
 			ft_strncat(res, str_prec, ft_strlen(str_prec));
+			ft_putnstr(str_prec, ft_strlen(str_prec), opt);
 			free(str_prec);
 		}
 	}
@@ -417,11 +453,13 @@ int		concat_hex(t_option *opt, va_list ap, char *res, char mode)
 		else
 			ft_strcpy(&padding[opt->width - ft_strlen(temp)], temp);
 		ft_strncat(res, padding, ft_strlen(padding));
+		ft_putnstr(padding, ft_strlen(padding), opt);
 		free(padding);
 	}
 	else
 	{
 		ft_strncat(res, temp, ft_strlen(temp));
+		ft_putnstr(temp, ft_strlen(temp), opt);
 	}
 	free(temp);
 	return (0);
@@ -469,12 +507,14 @@ int		concat_str(t_option *opt, va_list ap, char *res)
 				ft_memset(padding, ' ', opt->width - ft_strlen(str_prec));
 			}
 			ft_strncat(res, padding, ft_strlen(padding));
+			ft_putnstr(padding, ft_strlen(padding), opt);
 			free(padding);
 			free(str_prec);
 		}
 		else
 		{				
 			ft_strncat(res, str_prec, ft_strlen(str_prec));
+			ft_putnstr(str_prec, ft_strlen(str_prec), opt);
 			free(str_prec);
 		}
 	}
@@ -507,17 +547,20 @@ int		concat_str(t_option *opt, va_list ap, char *res)
 				ft_memset(padding, ' ', opt->width - ft_strlen(str_prec));
 			}
 			ft_strncat(res, padding, ft_strlen(padding));
+			ft_putnstr(padding, ft_strlen(padding), opt);
 			free(padding);
 			free(str_prec);
 		}
 		else
 		{
 			ft_strncat(res, padding, ft_strlen(padding));
+			ft_putnstr(padding, ft_strlen(padding), opt);
 		}
 	}
 	else
 	{
 		ft_strncat(res, temp, ft_strlen(temp));
+		ft_putnstr(temp, ft_strlen(temp), opt);
 	}
 	return (0);
 }
@@ -556,12 +599,14 @@ int		concat_paddr(t_option *opt, va_list ap, char *res)
 				ft_memset(padding, ' ', opt->width - ft_strlen(str_prec));
 			}
 			ft_strncat(res, padding, ft_strlen(padding));
+			ft_putnstr(padding, ft_strlen(padding), opt);
 			free(padding);
 			free(str_prec);
 		}
 		else
 		{				
 			ft_strncat(res, str_prec, ft_strlen(str_prec));
+			ft_putnstr(str_prec, ft_strlen(str_prec), opt);
 			free(str_prec);
 		}
 	}
@@ -591,17 +636,20 @@ int		concat_paddr(t_option *opt, va_list ap, char *res)
 				ft_memset(padding, ' ', opt->width - ft_strlen(str_prec));
 			}
 			ft_strncat(res, padding, ft_strlen(padding));
+			ft_putnstr(padding, ft_strlen(padding), opt);
 			free(padding);
 			free(str_prec);
 		}
 		else
 		{
 			ft_strncat(res, padding, ft_strlen(padding));
+			ft_putnstr(padding, ft_strlen(padding), opt);
 		}
 	}
 	else
 	{
 		ft_strncat(res, temp, ft_strlen(temp));
+		ft_putnstr(temp, ft_strlen(temp), opt);
 	}
 	free(temp);
 	return (0);
@@ -675,6 +723,7 @@ int		convert_str(char *str, va_list ap, char *res)
 	t_option	opt;
 
 	i = 0;
+	opt.len = 0;
 	init_option(&opt);
 	if (str == 0)
 		return (-1);
@@ -683,7 +732,7 @@ int		convert_str(char *str, va_list ap, char *res)
 		if (str[i] == '%')
 		{
 			init_option(&opt);
-			if (next_is_percent(str, res, &i))
+			if (next_is_percent(str, res, &i, &opt))
 				continue ;
 			if (parse_flag(&opt, ap, (char *)str, &i) == -1)
 				return (-1);
@@ -691,10 +740,13 @@ int		convert_str(char *str, va_list ap, char *res)
 				return (-1);
 		}
 		else
+		{
 			ft_strncat(res, (char *)&str[i], 1);
+			ft_putnstr((char *)&str[i], 1, &opt);
+		}
 		i++;
 	}
-	return (0);
+	return (opt.len);
 }
 
 int		ft_printf(const char *str, ...)
@@ -705,10 +757,9 @@ int		ft_printf(const char *str, ...)
 
 	ft_memset((void *)res, 0, 10000);
 	va_start(ap, str);
-	if (convert_str((char *)str, ap, res) == -1)
+	if ((ret = convert_str((char *)str, ap, res)) == -1)
 		return (-1);
-	ft_putstr(res);
-	ret = ft_strlen(res);
 	va_end(ap);
 	return (ret);
 }
+
