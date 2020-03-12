@@ -33,6 +33,13 @@ typedef	struct		s_option
 	char	pad;
 }					t_option;
 
+void	ft_putnstr(char *str, int n, t_option *opt);
+char 	*make_padstr(int size, char pad);
+int		print_perc(t_option *opt);
+int		print_int(t_option *opt, va_list ap);
+int		print_uint(t_option *opt, va_list ap);
+
+void	ft_swap(char *c1, char *c2);
 void	*ft_memset(void *b, int c, size_t len);
 void	ft_bzero(void *s, size_t n);
 void	*ft_memcpy(void *dst, const void *src, size_t n);
