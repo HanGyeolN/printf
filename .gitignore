@@ -3,4 +3,4 @@ libftprintf.a
 *.swp
 *.swo
 .vscode/
-.DS_Store/
+.DS_Store
