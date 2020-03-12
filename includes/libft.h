@@ -6,7 +6,7 @@
 /*   By: hna <hna@student.42seoul.kr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/24 19:18:11 by hna               #+#    #+#             */
-/*   Updated: 2020/03/11 12:10:13 by hna              ###   ########.fr       */
+/*   Updated: 2020/03/12 21:26:18 by hna              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,29 +15,12 @@
 
 #include <unistd.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
 
 typedef struct		s_list
 {
 	void			*content;
 	struct s_list	*next;
 }					t_list;
-
-typedef	struct		s_option
-{
-	int		len;
-	int		width;
-	int		prec;
-	int		minus;
-	char	pad;
-}					t_option;
-
-void	ft_putnstr(char *str, int n, t_option *opt);
-char 	*make_padstr(int size, char pad);
-int		print_perc(t_option *opt);
-int		print_int(t_option *opt, va_list ap);
-int		print_uint(t_option *opt, va_list ap);
 
 void	ft_swap(char *c1, char *c2);
 void	*ft_memset(void *b, int c, size_t len);
@@ -97,6 +80,5 @@ char	*ft_strcpy(char *dest, char *src);
 int		ft_strcmp(char *s1, char *s2);
 char	*ft_strcat(char *dest, char *src);
 char	*ft_itoa_u(unsigned int n);
-int		ft_printf(const char *str, ...);
 
 #endif

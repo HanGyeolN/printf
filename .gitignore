@@ -1,0 +1,6 @@
+pft_2019/
+libftprintf.a
+*.swp
+*.swo
+.vscode/
+.DS_Store/
